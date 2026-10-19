@@ -5,6 +5,7 @@ The design adapts marketplace gig 92's hashed, expiring, single-use OTP pattern 
 ## Public boundaries
 
 - `modules/auth/validation.ts`: pure Zod credentials/code schemas.
+- `modules/auth/proof.ts`: pure, exact-format session-bound proof-cookie encoding and parsing. Rejects trailing segments and other-session envelopes.
 - `modules/auth/contracts.ts`: `VerificationStore`, `ChallengeDecryptor`, `CodeDelivery` ports and `deliverLoginChallenge` orchestration. No Next.js/provider SDK imports. Returns only a proof after delivery; checks session binding.
 - `modules/auth/components/`: client auth, code and logout forms. Depend on a small relative JSON API contract (`message`, `error`, optional `redirect`), never a provider SDK.
 - `modules/profiles/validation.ts`: pure minimal profile schema/type.

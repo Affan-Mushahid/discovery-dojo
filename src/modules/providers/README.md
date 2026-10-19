@@ -1,6 +1,6 @@
 # Provider boundaries
 
-Phase 3 adds server-only adapters; actual delivery/data access requires configuration and pending migrations.
+Phase 4 adds a server-only OpenRouter free-router adapter and Supabase-backed simulation persistence. Provider availability is variable; rate limits or outages preserve submitted messages where possible and show a retryable error.
 
 - `supabase/`: signed-in cookie session, verification RPC and persistence adapters; no service-role key.
 - `openrouter/`: placeholder for future server-only text generation using the free router.

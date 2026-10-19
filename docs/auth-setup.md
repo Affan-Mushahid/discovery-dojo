@@ -2,12 +2,13 @@
 
 ## Current deployment status
 
-Four migrations were submitted through `apply_migration`; all are held for approval and **none have run**. The inspected public schema remains empty. Approve them in the Database panel in order:
+Five migrations were submitted through `apply_migration`; all are held for approval and **none have run**. The inspected public schema remains empty. Approve them in the Database panel in order:
 
 1. `create_session_verification_storage`
 2. `create_login_verification_rpcs`
 3. `create_mvp_domain_tables`
 4. `seed_shared_solar_scenario`
+5. `reject_null_verification_inputs` — makes the completion RPC strict so SQL NULL arguments cannot bypass comparison checks. Approve this security hardening before enabling access.
 
 Do not run handwritten SQL or apply later migrations before their dependencies. Table policies are versioned one-time migrations; the seed uses conflict-safe inserts and never overwrites edited content. No destructive reset is provided.
 
@@ -28,7 +29,7 @@ With an anon key and a signed-in user, server and browser otherwise have identic
 
 Rows are locked during completion: five total attempts, ten-minute expiry, single use. Sends are serialized per user: 60-second cooldown and five per rolling hourly bucket, including other sessions. Resends invalidate previous codes; attempts do not reset within the hourly bucket. Supabase independently rate-limits password/signup requests. Delivery failure consumes a send slot; retry after cooldown. Direct RPC callers can exhaust their own send quota, not gain access.
 
-`is_login_verified` checks `auth.uid()`, the JWT `session_id`, a matching live `auth.sessions` row, and confirmed email. Protected routes revalidate the user; protected table RLS repeats the gate. Refresh retains the same session ID, so no application timeout is imposed. Supabase expiry, refresh-token reuse, revocation and project settings still govern lifetime. Logout removes this session's gate and requests global Supabase signout. Revoked sessions lose access even if an access token has not yet expired when the underlying auth session is removed.
+`is_login_verified` checks `auth.uid()`, the JWT `session_id`, a matching live `auth.sessions` row, confirmed email, and a password entry in the signed JWT authentication-method references. Confirmation-link or other non-password sessions cannot enroll or pass the gate. Protected routes revalidate the user; protected table RLS repeats the gate. Refresh retains the same session ID, so no application timeout is imposed. Supabase expiry, refresh-token reuse, revocation and project settings still govern lifetime. Logout removes this session's gate and requests global Supabase signout. Revoked sessions lose access even if an access token has not yet expired when the underlying auth session is removed.
 
 This is custom email verification, **not Supabase-native MFA/AAL2**. Password and inbox compromise remain risks. Use HTTPS in deployment. Do not cache private routes or responses. Auth tokens are HttpOnly cookies in this app; no client Supabase session/localStorage is used.
 
@@ -43,3 +44,7 @@ Shared scenarios are verified read-only. Hidden facts, code hashes, proofs, key 
 Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` and `npm run test:e2e` (install Chromium first). These checks could not be executed by this build agent because no shell tool is available.
 
 After configuration, test with two real users: signup confirmation; fresh login blocked before code; invalid/expired/replayed codes; sixth attempt; resend cooldown; rate limit across sessions; a fresh session cannot reuse another's proof; refresh preserves verification; duplicate profile saves create one row; user B cannot read/update user A by REST; unverified JWT cannot read profiles/scenarios; anonymous/authenticated clients cannot select code/hidden tables or insert login verifications; logout/revocation blocks old access. Real Gmail delivery and live RLS integration require the approved migrations and are not asserted by the included smoke/unit tests.
+
+### Direct RPC negative checks
+
+Include REST RPC calls with `p_code: null`, `p_proof: null`, and both null; none may return `true` or unlock profile/scenario access. The strict-function migration is required even though Next.js rejects these values. Also test non-password confirmation-link sessions and proof values with extra dot-separated segments. Migration approvals and delivery-key provisioning are deployment prerequisites, not steps the application silently performs.

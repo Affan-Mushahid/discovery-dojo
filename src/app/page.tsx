@@ -1,5 +1,12 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { AccessError, verifiedSession } from "@/modules/auth/session";
 
-export default function HomePage() {
-  redirect("/login");
+export const dynamic = "force-dynamic";
+export default async function HomePage() {
+  let session;
+  try { session = await verifiedSession(); }
+  catch (error) { redirect(error instanceof AccessError && error.status === 403 ? "/verify" : "/login"); }
+  const { data: simulations } = await session.client.from("simulations").select("id,status,created_at,scenarios(title)").eq("user_id", session.user.id).order("created_at", { ascending: false }).limit(20);
+  return <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6"><header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-800">DiscoveryDojo</p><h1 className="mt-2 font-serif text-4xl">Practice the questions that matter.</h1><p className="mt-3 max-w-xl text-slate-600">Build confidence in sales discovery with a realistic solar prospect.</p></div><Link className="secondary-button" href="/profile">Your profile</Link></header><section className="mt-9 rounded-2xl bg-[#123d32] p-6 text-white sm:p-9"><p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-200">Shared scenario · text practice</p><h2 className="mt-3 font-serif text-3xl">Solar lead discovery</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50">A residential solar installer wants more leads. You’re the lead-generation partner. Discover their current funnel, challenges, and goals before recommending a next step.</p><Link href="/simulation" className="mt-6 inline-flex min-h-12 items-center rounded-lg bg-white px-5 font-semibold text-emerald-950 hover:bg-emerald-50">Start a simulation →</Link></section><section className="mt-10"><div className="mb-4 flex items-center justify-between"><h2 className="font-serif text-2xl">Your practice history</h2><span className="text-sm text-slate-500">Private to you</span></div>{!simulations?.length?<p className="rounded-xl border border-dashed p-6 text-sm text-slate-600">No saved simulations yet. Start your first practice above.</p>:<div className="grid gap-3">{simulations.map((s:any)=><Link key={s.id} href={`/simulation/${s.id}`} className="flex items-center justify-between rounded-xl border bg-white p-4 hover:border-emerald-700"><div><p className="font-semibold">Solar lead discovery</p><p className="mt-1 text-xs text-slate-500">{new Date(s.created_at).toLocaleDateString()} · {s.status}</p></div><span className="text-emerald-800">Review →</span></Link>)}</div>}</section></main>;
 }

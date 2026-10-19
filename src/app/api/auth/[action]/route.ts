@@ -8,8 +8,9 @@ import { gmailDelivery } from "@/modules/providers/email/gmail";
 import { challengeDecryptor } from "@/modules/providers/email/challenge";
 import { apiError, assertSameOrigin, json, readBody } from "@/lib/http";
 
+import { loginProofCookie as proofCookie, encodeLoginProof, readLoginProof } from "@/modules/auth/proof";
+
 export const runtime = "nodejs";
-const proofCookie = "dojo-login-proof";
 export async function POST(request: Request, context: { params: Promise<{ action: string }> }) {
   try {
     assertSameOrigin(request);
@@ -42,7 +43,7 @@ export async function POST(request: Request, context: { params: Promise<{ action
       const delivery = gmailDelivery();
       const decryptor = challengeDecryptor();
       const proof = await deliverLoginChallenge(verificationStore(sessionClient), decryptor, delivery, user.email!, sessionId);
-      jar.set(proofCookie, `${sessionId}.${proof}`, {
+      jar.set(proofCookie, encodeLoginProof(sessionId, proof), {
         httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/api/auth", maxAge: 600,
       });
       return json({ message: "Code sent. Check your inbox. It expires in 10 minutes." });
@@ -50,9 +51,8 @@ export async function POST(request: Request, context: { params: Promise<{ action
     if (action === "verify-code") {
       const { code } = codeSchema.parse(await readBody(request));
       const { client: sessionClient, sessionId } = await passwordSession();
-      const value = jar.get(proofCookie)?.value ?? "";
-      const [boundSession, proof] = value.split(".");
-      if (boundSession !== sessionId || !/^[a-f0-9]{64}$/.test(proof ?? "")) return json({ error: "Request a code from this browser first." }, 400);
+      const proof = readLoginProof(jar.get(proofCookie)?.value, sessionId);
+      if (!proof) return json({ error: "Request a code from this browser first." }, 400);
       const valid = await verificationStore(sessionClient).complete(code, proof);
       if (!valid) return json({ error: "Invalid, expired or already used code. Five attempts maximum; request a new code if needed." }, 400);
       jar.delete(proofCookie);

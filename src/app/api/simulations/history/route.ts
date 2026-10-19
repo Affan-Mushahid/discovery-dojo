@@ -1,0 +1,3 @@
+import {NextResponse} from "next/server";import {verifiedSession,AccessError} from "@/modules/auth/session";
+export const dynamic="force-dynamic";
+export async function GET(){try{const {client,user}=await verifiedSession();const {data,error}=await client.from("simulations").select("id,status,learner_message_count,created_at,scenarios(title)").eq("user_id",user.id).order("created_at",{ascending:false}).limit(40);if(error)throw new Error("History is unavailable; database setup may be pending.");return NextResponse.json({items:data??[]});}catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Unable to load history."},{status:e instanceof AccessError?e.status:500});}}

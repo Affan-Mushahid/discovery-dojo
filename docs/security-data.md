@@ -6,4 +6,4 @@
 - Use Supabase Auth and its session behavior for authentication. Signup email confirmation and the product's planned fresh-login code verification are distinct requirements; do not claim either is implemented unless it is.
 - Avoid logging secrets, verification codes, or private transcripts. Missing configuration should produce a clear actionable error, not a crash or a silent insecure fallback.
 
-Phase 3 inspected the empty schema and submitted four migrations; all are pending Database-panel approval. No table is live yet. See `docs/auth-setup.md` for the session-bound, database-enforced custom gate, encryption-key provisioning and release checks. Future schema changes must still use the approved migration workflow.
+Phase 3 inspected the empty schema and submitted five migrations; all are pending Database-panel approval. No table is live yet. See `docs/auth-setup.md` for the session-bound, database-enforced custom gate, encryption-key provisioning and release checks. Future schema changes must still use the approved migration workflow.

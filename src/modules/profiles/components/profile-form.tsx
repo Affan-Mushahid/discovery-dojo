@@ -1,10 +1,12 @@
 "use client";
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Save } from "lucide-react";
 import type { Profile } from "../validation";
 import { requestJson } from "@/lib/client-http";
 
 export function ProfileForm({ profile, email }: { profile: Profile | null; email: string }) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -15,6 +17,7 @@ export function ProfileForm({ profile, email }: { profile: Profile | null; email
     try {
       const result = await requestJson("/api/profile", "PUT", body);
       setMessage(result.message ?? "Profile saved.");
+      router.refresh();
     } catch (err) { setError(err instanceof Error ? err.message : "Try again."); }
     finally { setBusy(false); }
   }

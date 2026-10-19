@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+import { verifiedSession,AccessError } from "@/modules/auth/session";
+import { loadTranscript } from "@/modules/conversations/repository";
+export const dynamic="force-dynamic";
+export async function GET(_req:Request,{params}:{params:Promise<{id:string}>}){try{const {id}=await params;const {client,user}=await verifiedSession();const {data:simulation,error}=await client.from("simulations").select("id,status,learner_message_count,created_at,scenario_id,scenarios(title,briefing)").eq("id",id).eq("user_id",user.id).single();if(error||!simulation)return NextResponse.json({error:"Simulation not found."},{status:404});const messages=await loadTranscript(client,id,user.id);const {data:evaluation}=await client.from("evaluations").select("score,breakdown,evidence,missed_questions,example_followups,tips,created_at").eq("simulation_id",id).eq("user_id",user.id).maybeSingle();return NextResponse.json({simulation,messages,evaluation});}catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Unable to load."},{status:e instanceof AccessError?e.status:500});}}

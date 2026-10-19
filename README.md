@@ -1,8 +1,8 @@
 # DiscoveryDojo
 
-Phase 3 adds mobile-first signup/login, mandatory session-bound email codes and private profile onboarding/editing. Simulation and evaluation workflows remain deferred. `SPEC.md` is the full product reference.
+Phase 4 adds the shared solar discovery scenario, persistent text simulations, private evidence-based evaluations and saved history. `SPEC.md` is the full product reference.
 
-**Setup is pending:** all four submitted database migrations are awaiting approval in the Database panel and have NOT run. Gmail OAuth and an RSA OpenPGP delivery-key pair must also be configured; protected access fails closed until then. See `docs/auth-setup.md` for the approval order, public-key provisioning and security model.
+**Setup is pending:** required database migrations for login verification and simulations are awaiting approval in the Database panel and have NOT run. Gmail OAuth and an RSA OpenPGP delivery-key pair are required for protected access; add `OPENROUTER_API_KEY` to Secrets for prospect replies and evaluations. The free model router may be rate-limited or unavailable; retries are shown without assuming free unlimited service. See `docs/auth-setup.md` for email verification configuration.
 
 ## Run
 
@@ -23,9 +23,11 @@ src/components/ui/             Reserved shadcn-compatible UI primitives
 src/lib/utils.ts               Shared class-name helper
 src/modules/auth/              Auth contracts, forms, validation and session guards
 src/modules/profiles/          Minimal private profile form, validation and persistence
-src/modules/scenarios/         Scenario boundary (placeholder)
-src/modules/conversations/     Conversation boundary (placeholder)
-src/modules/evaluations/       Evaluation boundary (placeholder)
+src/modules/scenarios/         Shared solar prospect, hidden facts and rubric
+src/modules/conversations/     Validated text turns and transcript persistence
+src/modules/evaluations/       Evidence-based private scoring and rubric validation
+src/modules/simulations/      Session orchestration and turn-limit enforcement
+src/components/simulation-workspace.tsx  Mobile-first conversation and feedback UI
 src/modules/providers/         Server Supabase/email adapters; OpenRouter placeholder
 ```
 
@@ -46,11 +48,11 @@ prepare the project for shadcn/ui; no component library has been generated yet.
 - `npm run test:e2e` — Playwright, configured for desktop and mobile Chromium.
   Install browsers with `npx playwright install chromium` before future E2E runs.
 
-Unit tests cover validation and challenge orchestration. Playwright smoke tests cover responsive auth forms, anonymous profile protection and cross-origin rejection. Checks were not executed here: the agent has no shell tool. Live Gmail and two-user RLS acceptance checks remain required after configuration; see `docs/auth-setup.md`.
+Unit tests cover input validation (including age type coercion), exact session-proof envelopes and challenge orchestration. Playwright smoke tests cover responsive auth forms, anonymous profile protection and cross-origin rejection. Checks were not executed here: the agent has no shell tool. Live Gmail and two-user RLS acceptance checks remain required after configuration; see `docs/auth-setup.md`.
 
-## Deferred
+## Simulation behavior
 
-Text simulations, runtime enforcement of the fifteenth-learner-message rule, AI evaluation, saved-results UI and voice remain unimplemented. The pending seed includes the shared solar scenario and private scoring defaults only. No speech SDKs or microphone permissions are included. Later phases will use OpenRouter's free router; availability and quotas must be checked.
+The shared solar scenario's public briefing hides the funnel, follow-up and budget facts until discovered naturally. Conversations use `openrouter/free`, with factual context and transcript supplied server-side. The fifteenth learner message receives a frustrated prospect response, fails the simulation and triggers diagnostic evaluation. Ending earlier produces a normal completed evaluation. History and evaluations are owner-only through user-scoped queries and RLS. Voice and microphone access remain deferred. OpenRouter free availability/quotas are not guaranteed; a generation failure reports a retryable issue and does not silently substitute a paid model.
 
 Architecture follows the presentation/integration separation reviewed in the
 marketplace gig 99 source. Its social-feed features and localStorage token pattern
