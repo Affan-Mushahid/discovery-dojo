@@ -1,4 +1,4 @@
-// Reserved for authentication contracts and use cases.
-// Supabase sessions and custom login-code verification belong in later phases.
-// Do not export server-only adapters from a client-consumable barrel.
-export {};
+// Safe public domain surface. Server session helpers are an explicit import.
+export { credentialsSchema, codeSchema } from "./validation";
+export { deliverLoginChallenge } from "./contracts";
+export type { CodeDelivery, ChallengeDecryptor, VerificationStore, LoginChallenge } from "./contracts";

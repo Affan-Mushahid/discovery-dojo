@@ -1,10 +1,10 @@
 # Provider boundaries
 
-These directories are placeholders, not working integrations.
+Phase 3 adds server-only adapters; actual delivery/data access requires configuration and pending migrations.
 
-- `supabase/`: future persistence and session adapters; separate browser/server entries.
-- `openrouter/`: future server-only text generation using the free router.
-- `email/`: future server-only Gmail OAuth2 transport using Nodemailer.
+- `supabase/`: signed-in cookie session, verification RPC and persistence adapters; no service-role key.
+- `openrouter/`: placeholder for future server-only text generation using the free router.
+- `email/`: Gmail OAuth2 transport and OpenPGP challenge decryption. See `docs/auth-setup.md`.
 
 Domain modules own contracts; adapters implement them. Route Handlers will be thin
 composition/validation layers under `src/app/api/` when actual routes are needed.

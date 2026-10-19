@@ -1,3 +1,3 @@
-// Reserved for a server-only Nodemailer Gmail OAuth2 delivery adapter.
-// Verification-code generation and validation belong to the auth module.
+// Server-only adapters: gmail.ts (delivery), challenge.ts (PGP decryption).
+// Import explicitly; no server secrets are exported through this barrel.
 export {};

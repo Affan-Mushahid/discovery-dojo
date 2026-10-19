@@ -1,4 +1,3 @@
-// Reserved for Supabase adapters using @supabase/ssr and @supabase/supabase-js.
-// Future browser and server clients must live in separate entry points.
-// Server access must respect the signed-in user's RLS policies.
+// Import server.ts and verification.ts explicitly from server-only code.
+// This barrel deliberately exposes no server adapter to client components.
 export {};
